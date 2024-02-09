@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "BankAccountService";
+package BankAccountApi;
+
+service AccountDetailsGrpc{
+  rpc GetAccountDetails(AccountDetailsRequest) returns (AccountDetailsResponse);
+}
+
+message AccountDetailsRequest {
+  int32 client_id = 1; 
+}
+
+message AccountDetailsResponse {
+  bool success = 1; 
+  string message = 2; 
+  string full_name = 3; 
+  string phone_number = 4; 
+  repeated AccountInfo accounts = 5; 
+}
+
+message AccountInfo {
+  int32 account_type = 1;
+  int64 account_number = 2; 
+}

@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankAccountService", "BankAccountService\BankAccountService.csproj", "{BB594FFE-6C4C-4EC6-A2F3-E98BBE89900F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankAccountGateway", "BankAccountGateway\BankAccountGateway.csproj", "{7436873A-1608-4EA9-9938-F2D8DCE18F1F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB594FFE-6C4C-4EC6-A2F3-E98BBE89900F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB594FFE-6C4C-4EC6-A2F3-E98BBE89900F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB594FFE-6C4C-4EC6-A2F3-E98BBE89900F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB594FFE-6C4C-4EC6-A2F3-E98BBE89900F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7436873A-1608-4EA9-9938-F2D8DCE18F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7436873A-1608-4EA9-9938-F2D8DCE18F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7436873A-1608-4EA9-9938-F2D8DCE18F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7436873A-1608-4EA9-9938-F2D8DCE18F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
