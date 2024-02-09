@@ -1,8 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
 using BankAccountGateway.Extensions;
 using BankAccountService;
 using BankAccountService.Services;
-using Grpc.Net.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,12 +11,14 @@ namespace BankAccountGateway.Controllers;
 [Authorize]
 public class AccountDetailsController : ControllerBase
 {
-    private readonly GrpcSettings _grpcSettings;
     private readonly string _clientIdKey;
+    private readonly AccountDetailsGrpc.AccountDetailsGrpcClient _accountDetailsClient;
 
-    public AccountDetailsController(GrpcSettings grpcSettings, IConfiguration configuration)
+
+    public AccountDetailsController(AccountDetailsGrpc.AccountDetailsGrpcClient accountDetailsClient,
+        IConfiguration configuration)
     {
-        _grpcSettings = grpcSettings;
+        _accountDetailsClient = accountDetailsClient;
         _clientIdKey = configuration.GetSection("ClientIdKey").Value;
     }
 
@@ -28,10 +28,10 @@ public class AccountDetailsController : ControllerBase
         var jwtToken = HttpContext.ReadJwtToken();
         if (jwtToken == null)
         {
-            return Unauthorized("Client ID claim not found in token");
+            return Unauthorized("Jwt token not found");
         }
-        
-        
+
+
         var clientIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub");
         if (clientIdClaim == null)
         {
@@ -44,8 +44,7 @@ public class AccountDetailsController : ControllerBase
             ClientId = clientId
         };
 
-        var accountDetailsGrpcClient = CreateAccountDetailsGrpcClient();
-        var response = await accountDetailsGrpcClient.GetAccountDetailsAsync(request, cancellationToken: token);
+        var response = await _accountDetailsClient.GetAccountDetailsAsync(request, cancellationToken: token);
 
 
         if (response.Success)
@@ -59,15 +58,5 @@ public class AccountDetailsController : ControllerBase
     private int DecryptClientId(string encryptedClientId)
     {
         return ClientIdEncryptor.DecryptClientId(encryptedClientId, _clientIdKey);
-    }
-
-    private AccountDetailsGrpc.AccountDetailsGrpcClient CreateAccountDetailsGrpcClient()
-    {
-        var handler = new HttpClientHandler();
-        handler.ServerCertificateCustomValidationCallback =
-            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-        var channel =
-            GrpcChannel.ForAddress(_grpcSettings.ServerAddress, new GrpcChannelOptions { HttpHandler = handler });
-        return new AccountDetailsGrpc.AccountDetailsGrpcClient(channel);
     }
 }

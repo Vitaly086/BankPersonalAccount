@@ -14,12 +14,15 @@ namespace BankAccountService.Services.Implementations;
 public class AuthorizationService : IAuthorizationService
 {
     private readonly BankAccountContext _accountContext;
+    private readonly ILogger<AuthorizationService> _logger;
     private readonly string _jwtToken;
     private readonly string _clientIdKey;
 
-    public AuthorizationService(BankAccountContext accountContext, IConfiguration configuration)
+    public AuthorizationService(BankAccountContext accountContext, IConfiguration configuration,
+        ILogger<AuthorizationService> logger)
     {
         _accountContext = accountContext;
+        _logger = logger;
         _jwtToken = configuration.GetSection("JwtToken").Value;
         _clientIdKey = configuration.GetSection("ClientIdKey").Value;
     }
@@ -28,46 +31,63 @@ public class AuthorizationService : IAuthorizationService
         string password,
         CancellationToken token)
     {
-        if (await _accountContext.Clients.AnyAsync(c => c.PhoneNumber == phoneNumber, cancellationToken: token))
+        try
         {
-            return OperationResult<AuthClientDto>.Fail("Client with this phone number already exists.");
+            if (await _accountContext.Clients.AnyAsync(c => c.PhoneNumber == phoneNumber, cancellationToken: token))
+            {
+                return OperationResult<AuthClientDto>.Fail("Client with this phone number already exists.");
+            }
+
+            CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
+
+            var client = new Client
+            {
+                FullName = fullName,
+                PhoneNumber = phoneNumber,
+                PasswordHash = Convert.ToBase64String(passwordHash),
+                PasswordSalt = Convert.ToBase64String(passwordSalt)
+            };
+
+            _accountContext.Clients.Add(client);
+            await _accountContext.SaveChangesAsync(token);
+
+            var jwtToken = GenerateJwtToken(client.Id);
+            var authClientDto = new AuthClientDto(client.Id, jwtToken);
+
+            return OperationResult<AuthClientDto>.Ok(authClientDto, "Registration successful.");
         }
-
-        CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
-
-        var client = new Client
+        catch (Exception ex)
         {
-            FullName = fullName,
-            PhoneNumber = phoneNumber,
-            PasswordHash = Convert.ToBase64String(passwordHash),
-            PasswordSalt = Convert.ToBase64String(passwordSalt)
-        };
-
-        _accountContext.Clients.Add(client);
-        await _accountContext.SaveChangesAsync(token);
-
-        var jwtToken = GenerateJwtToken(client.Id);
-        var authClientDto = new AuthClientDto(client.Id, jwtToken);
-
-        return OperationResult<AuthClientDto>.Ok(authClientDto, "Registration successful.");
+            _logger.LogError(ex, $"Registration failed for {phoneNumber}. Error: {ex.Message}");
+            return OperationResult<AuthClientDto>.Fail(
+                "An error occurred during registration. Please try again later.");
+        }
     }
 
     public async Task<OperationResult<AuthClientDto>> LoginClientAsync(string phoneNumber, string password,
         CancellationToken token)
     {
-        var client = await _accountContext.Clients
-            .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber, cancellationToken: token);
-
-        if (client == null || !VerifyPasswordHash(password, Convert.FromBase64String(client.PasswordHash),
-                Convert.FromBase64String(client.PasswordSalt)))
+        try
         {
-            return OperationResult<AuthClientDto>.Fail("Phone number or password is incorrect.");
+            var client = await _accountContext.Clients
+                .FirstOrDefaultAsync(c => c.PhoneNumber == phoneNumber, cancellationToken: token);
+
+            if (client == null || !VerifyPasswordHash(password, Convert.FromBase64String(client.PasswordHash),
+                    Convert.FromBase64String(client.PasswordSalt)))
+            {
+                return OperationResult<AuthClientDto>.Fail("Phone number or password is incorrect.");
+            }
+
+            var jwtToken = GenerateJwtToken(client.Id);
+            var authClientDto = new AuthClientDto(client.Id, jwtToken);
+
+            return OperationResult<AuthClientDto>.Ok(authClientDto, "Authentication successful.");
         }
-
-        var jwtToken = GenerateJwtToken(client.Id);
-        var authClientDto = new AuthClientDto(client.Id, jwtToken);
-
-        return OperationResult<AuthClientDto>.Ok(authClientDto, "Authentication successful.");
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Login attempt failed for {phoneNumber}. Error: {ex.Message}");
+            return OperationResult<AuthClientDto>.Fail("An error occurred during login. Please try again later.");
+        }
     }
 
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

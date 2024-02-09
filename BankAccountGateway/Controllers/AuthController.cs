@@ -1,5 +1,4 @@
 using BankAccountService;
-using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankAccountGateway.Controllers;
@@ -8,11 +7,11 @@ namespace BankAccountGateway.Controllers;
 [Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly GrpcSettings _grpcSettings;
+    private readonly AuthorizationGrpc.AuthorizationGrpcClient _authorizationClient;
 
-    public AuthController(GrpcSettings grpcSettings)
+    public AuthController(AuthorizationGrpc.AuthorizationGrpcClient authorizationClient)
     {
-        _grpcSettings = grpcSettings;
+        _authorizationClient = authorizationClient;
     }
 
     [HttpPost]
@@ -25,8 +24,7 @@ public class AuthController : ControllerBase
             Password = requestDto.Password
         };
 
-        var authorizationGrpcClient = CreateAuthorizationGrpcClient();
-        var response = await authorizationGrpcClient.LoginAsync(loginRequest, cancellationToken: token);
+        var response = await _authorizationClient.LoginAsync(loginRequest, cancellationToken: token);
 
         if (response.Success)
         {
@@ -46,10 +44,8 @@ public class AuthController : ControllerBase
             PhoneNumber = request.PhoneNumber,
             Password = request.Password
         };
-        
-        var authorizationGrpcClient = CreateAuthorizationGrpcClient();
 
-        var response = await authorizationGrpcClient.RegisterAsync(registerRequest, cancellationToken: token);
+        var response = await _authorizationClient.RegisterAsync(registerRequest, cancellationToken: token);
 
         if (response.Success)
         {
@@ -57,13 +53,5 @@ public class AuthController : ControllerBase
         }
 
         return BadRequest(new AuthResponseDto(response.Message, null));
-    }
-    
-    private AuthorizationGrpc.AuthorizationGrpcClient CreateAuthorizationGrpcClient()
-    {
-        var handler = new HttpClientHandler();
-        handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-        var channel = GrpcChannel.ForAddress(_grpcSettings.ServerAddress, new GrpcChannelOptions { HttpHandler = handler });
-        return new AuthorizationGrpc.AuthorizationGrpcClient(channel);
     }
 }
