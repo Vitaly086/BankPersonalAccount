@@ -3,9 +3,9 @@
 
 INSERT INTO "Clients"  ("FullName", "PhoneNumber" , "PasswordHash" , "PasswordSalt")
 VALUES 
-    ('User1', '111-111-1111', 'passwordhash1', 'salt1'),
-    ('User2', '222-222-2222', 'passwordhash2', 'salt2'),
-    ('User3', '333-333-3333', 'passwordhash3', 'salt3');
+    ('User1', '+79999999999', 'passwordhash1', 'salt1'),
+    ('User2', '+79999999999', 'passwordhash2', 'salt2'),
+    ('User3', '+79999999999', 'passwordhash3', 'salt3');
     
     
 Добавление аккаунтов
