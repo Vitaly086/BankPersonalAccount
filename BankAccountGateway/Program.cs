@@ -1,5 +1,6 @@
 using System.Text;
 using BankAccountGateway;
+using BankAccountGateway.Middlewares;
 using BankAccountService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

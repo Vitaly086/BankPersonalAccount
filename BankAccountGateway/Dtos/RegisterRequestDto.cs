@@ -1,3 +1,9 @@
-namespace BankAccountGateway.Controllers;
+using System.ComponentModel.DataAnnotations;
+using BankAccountService.Attributes;
 
-public record RegisterRequestDto(string FullName, string PhoneNumber, string Password);
+namespace BankAccountGateway.Dtos;
+
+public record RegisterRequestDto(
+    [Required] string FullName, 
+    [RussianPhoneNumber][Required] string PhoneNumber, 
+    [Required] string Password);

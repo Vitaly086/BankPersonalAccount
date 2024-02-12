@@ -1,3 +1,7 @@
-namespace BankAccountGateway.Controllers;
+using System.ComponentModel.DataAnnotations;
+using BankAccountService.Attributes;
 
-public record AuthRequestDto(string PhoneNumber, string Password);
+namespace BankAccountGateway.Dtos;
+
+public record AuthRequestDto([RussianPhoneNumber][Required] string PhoneNumber, 
+    [Required] string Password);

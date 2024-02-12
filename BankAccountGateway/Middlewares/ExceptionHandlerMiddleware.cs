@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 
-namespace BankAccountGateway;
+namespace BankAccountGateway.Middlewares;
 
 public static class ExceptionHandlerMiddlewareExtensions
 {

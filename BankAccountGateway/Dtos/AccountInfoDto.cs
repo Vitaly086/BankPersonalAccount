@@ -1,5 +1,5 @@
 using BankAccountService.Entity;
 
-namespace BankAccountGateway.Controllers;
+namespace BankAccountGateway.Dtos;
 
 public record AccountInfoDto(int Id, long AccountNumber, AccountType AccountType);
